@@ -7,6 +7,12 @@ run smartconfig for esp devices
 ```sh
 npm install react-native-esptouch
 ```
+##
+for run in android add to example library file local.properties
+```
+ANDROID_HOME=$HOME/Android/Sdk
+sdk.dir=/home/nikolay/Android/Sdk
+```
 
 ## Usage
 
@@ -17,6 +23,7 @@ import { multiply } from 'react-native-esptouch';
 
 const result = await multiply(3, 7);
 ```
+
 
 ## Contributing
 
@@ -29,3 +36,5 @@ MIT
 ---
 
 Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+
+
