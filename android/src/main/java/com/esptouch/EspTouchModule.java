@@ -32,8 +32,8 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.WritableMap;
 
-@ReactModule(name = EsptouchModule.TAG)
-public class EsptouchModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
+@ReactModule(name = EspTouchModule.TAG)
+public class EspTouchModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
   public static final String TAG = "EspTouch";
   private final ReactApplicationContext reactContext;
   private Activity thisActivity;
@@ -42,7 +42,7 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
   private Promise mConfigPromise;
   private final EspTouchBroadcastReceiver mReceiver; //  Мониторинг состояния сети и трансляция изменений GPS-переключателя
 
-  public EsptouchModule(ReactApplicationContext reactContext) {
+  public EspTouchModule(ReactApplicationContext reactContext) {
     super(reactContext);
     this.reactContext = reactContext;
     reactContext.addLifecycleEventListener(this);

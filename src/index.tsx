@@ -6,8 +6,8 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-const Esptouch = NativeModules.Esptouch
-  ? NativeModules.Esptouch
+const EspTouch = NativeModules.EspTouch
+  ? NativeModules.EspTouch
   : new Proxy(
       {},
       {
@@ -19,10 +19,10 @@ const Esptouch = NativeModules.Esptouch
 
 
 export function initESPTouch(): Promise<string> {
-  return Esptouch.initESPTouch();
+  return EspTouch.initESPTouch();
 }
 export function getNetInfo(): Promise<object> {
-  return Esptouch.getNetInfo();
+  return EspTouch.getNetInfo();
 }
 
 export enum BroadcastType {
@@ -30,5 +30,5 @@ export enum BroadcastType {
   broadcast = 1, //одновременно всем получателям посылаем (255.255.255.255 for android, x.x.x.0 for ios)
 }
 export function startSmartConfig(password: string, broadcastType: BroadcastType): Promise<object> {
-  return Esptouch.startSmartConfig(password, broadcastType);
+  return EspTouch.startSmartConfig(password, broadcastType);
 }

@@ -16,7 +16,7 @@ public class EsptouchPackage implements ReactPackage {
   @Override
   public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
     List<NativeModule> modules = new ArrayList<>();
-    modules.add(new EsptouchModule(reactContext));
+    modules.add(new EspTouchModule(reactContext));
     return modules;
   }
 
