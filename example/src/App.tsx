@@ -6,7 +6,7 @@ import {
   PermissionsAndroid,
   StatusBar,
 } from 'react-native';
-import { multiply, getNetInfo, initESPTouch, startSmartConfig , BroadcastType} from 'react-native-esptouch';
+import { getNetInfo, initESPTouch, startSmartConfig , BroadcastType} from 'react-native-esptouch';
 
 const requestNetInformation = async () => {
   try {
@@ -72,12 +72,8 @@ const requestCameraPermission = (setPermission: any) => async () => {
 };
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
+  const [result, setResult] = React.useState<number | undefined>(70);
   const [permission, setPermission] = React.useState<boolean>(false);
-
-  React.useEffect(() => {
-    multiply(3, 7).then(setResult);
-  }, []);
 
   React.useEffect(() => {
     if (permission) {

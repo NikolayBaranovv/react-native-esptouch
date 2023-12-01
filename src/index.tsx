@@ -17,9 +17,6 @@ const Esptouch = NativeModules.Esptouch
       }
     );
 
-export function multiply(a: number, b: number): Promise<number> {
-  return Esptouch.multiply(a, b);
-}
 
 export function initESPTouch(): Promise<string> {
   return Esptouch.initESPTouch();

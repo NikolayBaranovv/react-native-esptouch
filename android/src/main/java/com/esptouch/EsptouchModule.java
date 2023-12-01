@@ -9,24 +9,14 @@ import android.content.IntentFilter;
 import android.location.LocationManager;
 import android.net.wifi.WifiInfo;
 import android.os.*;
-import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+
 import android.util.Log;
-import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkCapabilities;
-import android.net.NetworkRequest;
-import android.net.Network;
-import android.net.TransportInfo;
 import android.os.Build;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.core.location.LocationManagerCompat;
 
 import java.lang.ref.WeakReference;
@@ -35,6 +25,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.esptouch.CheckWiFiState;
+import com.esptouch.EspTouchAsyncTask;
+import com.esptouch.WiFiStateResult;
 import com.espressif.iot.esptouch.EsptouchTask;
 import com.espressif.iot.esptouch.IEsptouchTask;
 import com.espressif.iot.esptouch.IEsptouchListener;
@@ -61,12 +54,18 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
   private Activity thisActivity;
   private boolean mDestroyed = false;
   private boolean mReceiverRegistered = false; // есть слушатель состояния сети?
-  private EsptouchAsyncTask4 mTask;  //  Задача настройки Wi-Fi
-  private String mSsid;
-  private byte[] mSsidBytes;
-  private String mBssid;
+  //  private EsptouchAsyncTask4 mTask;  //  Задача настройки Wi-Fi
+  private EspTouchAsyncTask mTask;  //  Задача настройки Wi-Fi
   private Promise mConfigPromise;
-  private StateResult thisStateResult;
+  private WiFiStateResult thisStateResult;
+
+  public EsptouchModule(ReactApplicationContext reactContext) {
+    super(reactContext);
+    this.reactContext = reactContext;
+    reactContext.addLifecycleEventListener(this);
+    Log.d(NAME, "1. initialize module");
+  }
+
 
 
   protected void getWifiInfo(Intent intent) {
@@ -122,31 +121,31 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
 //      connectivityManager.registerNetworkCallback(request, networkCallback);
 //      Log.i(NAME, "connectivityManager.requestNetwork");
 //    } else {
-      WifiManager wifiManager = (WifiManager) reactContext.getSystemService(Context.WIFI_SERVICE);
+    WifiManager wifiManager = (WifiManager) reactContext.getSystemService(Context.WIFI_SERVICE);
 
-      String action = intent.getAction();
-      assert wifiManager != null;
+    String action = intent.getAction();
+    assert wifiManager != null;
 
-      switch (action) {
-        case WifiManager.NETWORK_STATE_CHANGED_ACTION:
-          WifiInfo wifiInfo;
-          if (intent.hasExtra(WifiManager.EXTRA_WIFI_INFO)) {
-            wifiInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
-          } else {
-            wifiInfo = wifiManager.getConnectionInfo();
-          }
-          Log.i(NAME, "NETWORK_STATE_CHANGED_ACTION");
-          onWifiChanged(wifiInfo);
-          break;
-        case LocationManager.PROVIDERS_CHANGED_ACTION:
-          Log.i(NAME, "PROVIDERS_CHANGED_ACTION");
-          onWifiChanged(wifiManager.getConnectionInfo());
-          break;
-      }
+    switch (action) {
+      case WifiManager.NETWORK_STATE_CHANGED_ACTION:
+        WifiInfo wifiInfo;
+        if (intent.hasExtra(WifiManager.EXTRA_WIFI_INFO)) {
+          wifiInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
+        } else {
+          wifiInfo = wifiManager.getConnectionInfo();
+        }
+        Log.i(NAME, "NETWORK_STATE_CHANGED_ACTION");
+        onWifiChanged(wifiInfo);
+        break;
+      case LocationManager.PROVIDERS_CHANGED_ACTION:
+        Log.i(NAME, "PROVIDERS_CHANGED_ACTION");
+        onWifiChanged(wifiManager.getConnectionInfo());
+        break;
+    }
 //    }
   }
-
-  private BroadcastReceiver mReceiver = new BroadcastReceiver() { //  Мониторинг состояния сети и трансляция изменений GPS-переключателя
+  //  Мониторинг состояния сети и трансляция изменений GPS-переключателя
+  private BroadcastReceiver mReceiver = new BroadcastReceiver() {
     @Override
     public void onReceive(Context context, Intent intent) {
       String action = intent.getAction();
@@ -158,16 +157,12 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
     }
   };
 
-
-  private IEsptouchListener myListener = new IEsptouchListener() {
+  private final IEsptouchListener myListener = new IEsptouchListener() {
     @Override
     public void onEsptouchResultAdded(final IEsptouchResult result) {
-      onEsptouchResultAddedPerform(result);
+      Log.i(NAME,result.getBssid() + " is connected to the wifi");
     }
   };
-  private void onEsptouchResultAddedPerform(final IEsptouchResult result) {
-    Log.i(NAME,result.getBssid() + " is connected to the wifi");
-  }
   private class EsptouchAsyncTask4 extends AsyncTask<byte[], Void, List<IEsptouchResult>> {
     private WeakReference<Activity> mActivity;
     private final Object mLock = new Object();
@@ -239,13 +234,6 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
 
   }
 
-  public EsptouchModule(ReactApplicationContext reactContext) {
-
-    super(reactContext);
-    this.reactContext = reactContext;
-    reactContext.addLifecycleEventListener(this);
-    Log.d(NAME, "1. initialize module");
-      }
 
   @Override
   public void onHostResume() {
@@ -297,7 +285,7 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
     return Build.VERSION.SDK_INT >= 28;
   }
 
-  /* Зарегистрироваться на прием трансляции */
+  /* Подписка изменений в системе */
   private void registerBroadcastReceiver() {
     if (mReceiverRegistered) {
       return;
@@ -315,9 +303,8 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
   private void onWifiChanged(WifiInfo info) {
     Log.d(NAME, "4. onWifiChanged");
 
-    StateResult stateResult = checkState(info);
+    WiFiStateResult stateResult = new CheckWiFiState(reactContext).checkState(info);
     thisStateResult = stateResult;
-    mSsid = stateResult.ssid;
     if (thisStateResult != null) {
       Log.w(NAME, "message " + thisStateResult.message);
       Log.d(NAME, "enable " + thisStateResult.enable);
@@ -331,8 +318,6 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
       Log.d(NAME, "bssid " + thisStateResult.bssid);
 
     }
-    mSsidBytes = stateResult.ssidBytes;
-    mBssid = stateResult.bssid;
     CharSequence message = stateResult.message;
     boolean confirmEnable = false;
     if (stateResult.wifiConnected) {
@@ -351,110 +336,6 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
   protected String getEspTouchVersion() {
     return "ESP touch version:" + IEsptouchTask.ESPTOUCH_VERSION;
   }
-  protected static class StateResult {
-    public CharSequence message = null;
-    public boolean enable = true;
-    public boolean permissionGranted = false;
-    public boolean wifiConnected = false;
-    public boolean is5G = false;
-    public InetAddress address = null;
-    public String ssid = null;
-    public byte[] ssidBytes = null;
-    public String bssid = null;
-  }
-
-  protected StateResult checkState(WifiInfo info) {
-    StateResult result = new StateResult();
-    checkPermission(result);
-    if (!result.enable) {
-      return result;
-    }
-
-    checkLocation(result);
-    if (!result.enable) {
-      return result;
-    }
-
-    checkWifi(info, result);
-
-    return result;
-  }
-
-  private StateResult checkPermission(StateResult result) {
-    result.permissionGranted = true;
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      boolean locationGranted = reactContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-      if (!locationGranted) {
-        String[] splits = "APP require Location permission to get Wi-Fi information. \\nClick to request permission".split("\n");
-        if (splits.length != 2) {
-          throw new IllegalArgumentException("Invalid String @RES esptouch_message_permission");
-        }
-//        SpannableStringBuilder ssb = new SpannableStringBuilder(splits[0]);
-//        ssb.append('\n');
-//        SpannableString clickMsg = new SpannableString(splits[1]);
-//        ForegroundColorSpan clickSpan = new ForegroundColorSpan(0xFF0022FF);
-//        clickMsg.setSpan(clickSpan, 0, clickMsg.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-//        ssb.append(clickMsg);
-//        result.message = ssb;
-
-
-        result.permissionGranted = false;
-        result.enable = false;
-      }
-      return result;
-    }
-
-    return result;
-  }
-
-  private StateResult checkLocation(StateResult result) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-      LocationManager manager = reactContext.getSystemService(LocationManager.class);
-      boolean enable = manager != null && LocationManagerCompat.isLocationEnabled(manager);
-      if (!enable) {
-        result.message = "Please turn on GPS to get Wi-Fi information";
-        result.enable = false;
-        return result;
-      }
-    }
-
-    return result;
-  }
-
-  private StateResult checkWifi(WifiInfo wifiInfo, StateResult result) {
-    result.wifiConnected = false;
-    boolean connected = TouchNetUtil.isWifiConnected(wifiInfo);
-    if (!connected) {
-      result.message = "Please connect Wi-Fi first.";
-      return result;
-    }
-
-    String ssid = TouchNetUtil.getSsidString(wifiInfo);
-    int ipValue = wifiInfo.getIpAddress();
-    if (ipValue != 0) {
-      result.address = TouchNetUtil.getAddress(wifiInfo.getIpAddress());
-    } else {
-      result.address = TouchNetUtil.getIPv4Address();
-      if (result.address == null) {
-        result.address = TouchNetUtil.getIPv6Address();
-      }
-    }
-
-    result.wifiConnected = true;
-    result.message = "";
-    result.is5G = TouchNetUtil.is5G(wifiInfo.getFrequency());
-    if (result.is5G) {
-      result.message = "Current Wi-Fi connection is 5G, make sure your device supports it.";
-    }
-    result.ssid = ssid;
-    result.ssidBytes = TouchNetUtil.getRawSsidBytesOrElse(wifiInfo, ssid.getBytes());
-    result.bssid = wifiInfo.getBSSID();
-
-    result.enable = result.wifiConnected;
-
-    return result;
-  }
-
   private void respondErrorToRTN(int code, String msg) {
     if (mConfigPromise != null) {
       mConfigPromise.reject(Integer.toString(code), msg);
@@ -463,6 +344,7 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
 
   @ReactMethod
   public void startSmartConfig(String pwd, int broadcastType, Promise promise) {
+    Log.d(NAME,"startSmartConfig");
     mConfigPromise = promise;
     if (!mReceiverRegistered) {
       respondErrorToRTN(-1, "Модуль ESPTouch не готов");
@@ -499,7 +381,8 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
     if (mTask != null) {
       mTask.cancelEsptouch();
     }
-    mTask = new EsptouchAsyncTask4(thisActivity);
+//    mTask = new EsptouchAsyncTask4(thisActivity);
+    mTask = new EspTouchAsyncTask(reactContext, thisActivity, NAME, mConfigPromise);
     mTask.execute(ssid, bssid, password, deviceCount, broadcast);
   }
   @ReactMethod()
@@ -513,32 +396,28 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
     }
     // FIXME: this logic to UI
     // Проблема №29 гласит, что Android 9 должен предоставить разрешение на определение местоположения, а затем включить GPS для получения информации о Wi-Fi.
-        if (isSDKAtLeastP()) {
-          Log.d(NAME,"isSDKAtLeastP");
-            //Если разрешение на определение местоположения не предоставлено
-            if (ContextCompat.checkSelfPermission(thisActivity, Manifest.permission.ACCESS_COARSE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
-                Log.d(NAME,"we no have permission, try request");
-                // Определите, требуются ли инструкции по авторизации
-                if (thisActivity.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                  Log.d(NAME,"try create Toast");
-                    Toast.makeText(thisActivity, "ESPTouch требуется разрешение", Toast.LENGTH_LONG);
-                }
-                Log.d(NAME,"try request permission 2");
-                // Инициировать запрос авторизации
-                String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION};
-                activity.requestPermissions(permissions, REQUEST_PERMISSION, this);
-            } else {
-              Log.d(NAME,"registerBroadcastReceiver 1");
-                promise.resolve("success registerBroadcastReceiver!");
-                registerBroadcastReceiver();
-            }
-        } else {
-          Log.d(NAME,"registerBroadcastReceiver 2");
-          promise.resolve("success registerBroadcastReceiver! 2");
-          registerBroadcastReceiver();
-        }
-        promise.reject("can't start broadcast receiver");
+    if (isSDKAtLeastP()) {
+      Log.d(NAME,"isSDKAtLeastP");
+      //Если разрешение на определение местоположения не предоставлено
+      if (ContextCompat.checkSelfPermission(thisActivity, Manifest.permission.ACCESS_COARSE_LOCATION)
+        != PackageManager.PERMISSION_GRANTED) {
+        Log.d(NAME,"we no have permission, try request");
+        // Определите, требуются ли инструкции по авторизации
+        Log.d(NAME,"try request permission 2");
+        // Инициировать запрос авторизации
+        String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION};
+        activity.requestPermissions(permissions, REQUEST_PERMISSION, this);
+      } else {
+        Log.d(NAME,"registerBroadcastReceiver 1");
+        promise.resolve("success registerBroadcastReceiver!");
+        registerBroadcastReceiver();
+      }
+    } else {
+      Log.d(NAME,"registerBroadcastReceiver 2");
+      promise.resolve("success registerBroadcastReceiver! 2");
+      registerBroadcastReceiver();
+    }
+    promise.reject("can't start broadcast receiver");
   }
   @ReactMethod
   public void getNetInfo(Promise promise) {
@@ -596,8 +475,4 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
     return NAME;
   }
 
-  @ReactMethod
-  public void multiply(double a, double b, Promise promise) {
-    promise.resolve(a * b);
-  }
 }
