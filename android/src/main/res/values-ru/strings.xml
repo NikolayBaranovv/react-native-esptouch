@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">EspTouch</string>
+  <string name="menu_item_about">Приложение для подключения к Wi-Fi устройств</string>
+  <string name="about_app_version">Версия приложения: %s</string>
+
+  <string name="main_title">EspTouch</string>
+
+  <string name="esptouch_about_version">EspTouch Version: %s</string>
+  <string name="esptouch_create_broadcast_receiver">Успешно подписались на изменения в системе</string>
+  <string name="esptouch_success_execute_task">Устройство ZONT успешно настроено</string>
+
+  <string name="esptouch_activity_error">Не смог обратиться к системе</string>
+  <string name="esptouch_permission_error">Не выдано разрешение на доступ к GPS (нужно для взаимодействия с Wi-Fi)</string>
+  <string name="esptouch_get_wifi_state_error">Нет данных о состоянии сети</string>
+  <string name="esptouch_not_ready_error">Модуль ESPTouch не готов</string>
+  <string name="esptouch_wifi_5g_warning">Устройство ZONT не поддерживает 5G Wi-Fi, убедитесь, что подключены к сети 2.4G</string>
+  <string name="esptouch_no_wifi_connection_error">Телефон не подключен к сети Wi-Fi</string>
+  <string name="esptouch_no_gps_connection_error">Пожалуйста, включите GPS модуль, чтобы получить информацию о сети Wi-Fi</string>
+  <string name="esptouch_port_busy_error">Не смог запустить SmartConfig, порт занят</string>
+  <string name="esptouch_failed">Устройство не найдено</string>
+</resources>

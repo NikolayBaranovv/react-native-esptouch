@@ -51,7 +51,8 @@ public class CheckWiFiState {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             boolean locationGranted = reactContext.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
             if (!locationGranted) {
-                result.message =  "Приложению необходим доступ к точному местоположению, чтобы получить доступ к модулю Wi-Fi";
+
+                result.message = reactContext.getResources().getString(R.string.esptouch_permission_error);
                 result.permissionGranted = false;
                 result.enable = false;
             }
@@ -68,7 +69,7 @@ public class CheckWiFiState {
             LocationManager manager = reactContext.getSystemService(LocationManager.class);
             boolean enable = manager != null && LocationManagerCompat.isLocationEnabled(manager);
             if (!enable) {
-                result.message = "Пожалуйста, включите GPS модуль, чтобы получить информацию о сети Wi-Fi.";
+                result.message =  reactContext.getResources().getString(R.string.esptouch_no_gps_connection_error);
                 result.enable = false;
             }
         }
@@ -79,7 +80,7 @@ public class CheckWiFiState {
         result.wifiConnected = false;
         boolean connected = TouchNetUtil.isWifiConnected(wifiInfo);
         if (!connected) {
-            result.message = "Пожалуйста, сначала подключитесь к точке доступа Wi-Fi. Please connect Wi-Fi first.";
+            result.message = reactContext.getResources().getString(R.string.esptouch_no_wifi_connection_error);
             return;
         }
 
@@ -102,7 +103,7 @@ public class CheckWiFiState {
         result.is5G = TouchNetUtil.is5G(wifiInfo.getFrequency());
 
         if (result.is5G) {
-            result.message = "Вы подключены к сети 5G, устройство ZONT поддерживает работу только в сети 2.4G.  Current Wi-Fi connection is 5G, make sure your device supports it.";
+            result.message = reactContext.getResources().getString(R.string.esptouch_wifi_5g_warning);
         }
 
         result.ssid = ssid;

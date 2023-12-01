@@ -3,6 +3,7 @@ package com.esptouch;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.util.Log;
+import com.esptouch.R;
 import com.espressif.iot.esptouch.EsptouchTask;
 import com.espressif.iot.esptouch.IEsptouchListener;
 import com.espressif.iot.esptouch.IEsptouchResult;
@@ -33,7 +34,7 @@ public class EspTouchAsyncTask extends AsyncTask<byte[], Void, List<IEsptouchRes
     private final IEsptouchListener myListener = new IEsptouchListener() {
         @Override
         public void onEsptouchResultAdded(final IEsptouchResult result) {
-            Log.i(NAME,result.getBssid() + " is connected to the wifi");
+            Log.w(NAME, result.getBssid() + " is connected to the wifi");
         }
     };
     public void cancelEsptouch() {
@@ -67,8 +68,8 @@ public class EspTouchAsyncTask extends AsyncTask<byte[], Void, List<IEsptouchRes
     @Override
     protected void onPostExecute(List<IEsptouchResult> result) {
         if (result == null) {
-            Log.i(NAME,"Create Esptouch task failed, the EspTouch port could be used by other thread");
-            mConfigPromise.reject(Integer.toString(-6), "Не смог запустить ESPTouch, порт занят");
+            Log.e(NAME, "Create Esptouch task failed, the EspTouch port could be used by other thread");
+            mConfigPromise.reject(Integer.toString(-6), reactContext.getResources().getString(R.string.esptouch_port_busy_error));
             return;
         }
 
@@ -78,10 +79,10 @@ public class EspTouchAsyncTask extends AsyncTask<byte[], Void, List<IEsptouchRes
             // the task received some results including cancelled while
             // executing before receiving enough results
             if (firstResult.isSuc()) {
-                Log.i(NAME,"EspTouch success " + firstResult.getBssid() + " " + firstResult.getInetAddress());
+                Log.w(NAME,"EspTouch success " + firstResult.getBssid() + " " + firstResult.getInetAddress());
                 WritableMap map = Arguments.createMap();
                 map.putInt("code", 200);
-                map.putString("msg", "Устройство успешно настроено");
+                map.putString("msg", reactContext.getResources().getString(R.string.esptouch_success_execute_task));
                 map.putString("bssid", firstResult.getBssid());
                 map.putString("ip", firstResult.getInetAddress().getHostAddress());
                 mConfigPromise.resolve(map);
@@ -90,7 +91,7 @@ public class EspTouchAsyncTask extends AsyncTask<byte[], Void, List<IEsptouchRes
                 Log.i(NAME, "EspTouch fail");
                 WritableMap map = Arguments.createMap();
                 map.putInt("code", 0);
-                map.putString("msg", "Устройство не найдено");
+                map.putString("msg", reactContext.getResources().getString(R.string.esptouch_failed));
                 mConfigPromise.resolve(map);
             }
         }

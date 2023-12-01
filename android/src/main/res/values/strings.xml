@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">EspTouch</string>
+    <string name="menu_item_about">App for connect to Wi-Fi ESP-devices</string>
+    <string name="about_app_version">App Version: %s</string>
+
+    <string name="main_title">EspTouch</string>
+
+    <string name="esptouch_about_version">EspTouch Version: %s</string>
+    <string name="esptouch_create_broadcast_receiver">Success subscription to changes</string>
+    <string name="esptouch_success_execute_task">EspTouch Success add device to Wi-Fi</string>
+
+    <string name="esptouch_activity_error">Can not find application activity</string>
+    <string name="esptouch_permission_error">Need access Location</string>
+    <string name="esptouch_get_wifi_state_error">No Wi-Fi statistic</string>
+    <string name="esptouch_not_ready_error">ESPTouch module not ready</string>
+    <string name="esptouch_wifi_5g_warning">Current Wi-Fi connection is 5G, make sure your device supports it</string>
+    <string name="esptouch_no_wifi_connection_error">Please connect Wi-Fi first</string>
+  <string name="esptouch_no_gps_connection_error">Turn on GPS module</string>
+    <string name="esptouch_port_busy_error">Create Esptouch task failed, the EspTouch port could be used by other thread</string>
+    <string name="esptouch_failed">Device not found</string>
+</resources>

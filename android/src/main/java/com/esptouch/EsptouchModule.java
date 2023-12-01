@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import com.esptouch.EspTouchAsyncTask;
 import com.esptouch.EspTouchBroadcastReceiver;
 import com.esptouch.WiFiStateResult;
+import com.esptouch.R;
 import com.espressif.iot.esptouch.IEsptouchTask;
 import com.espressif.iot.esptouch.util.TouchNetUtil;
 import com.espressif.iot.esptouch.util.ByteUtil;
@@ -31,9 +32,9 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.WritableMap;
 
-@ReactModule(name = EsptouchModule.NAME)
+@ReactModule(name = EsptouchModule.TAG)
 public class EsptouchModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
-  public static final String NAME = "Esptouch";
+  public static final String TAG = "EspTouch";
   private final ReactApplicationContext reactContext;
   private Activity thisActivity;
   private boolean mReceiverRegistered = false; // есть слушатель состояния сети?
@@ -45,7 +46,7 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
     super(reactContext);
     this.reactContext = reactContext;
     reactContext.addLifecycleEventListener(this);
-    mReceiver = new EspTouchBroadcastReceiver(reactContext, NAME);
+    mReceiver = new EspTouchBroadcastReceiver(reactContext, TAG);
   }
 
   @Override
@@ -63,7 +64,11 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
     if (mReceiverRegistered) {
       reactContext.unregisterReceiver(mReceiver);
     }
-    Log.d(NAME, "destroy module");
+    Log.d(TAG, "destroy module");
+  }
+
+  private String getLocalizedString(int str_from_resource) {
+    return reactContext.getResources().getString(str_from_resource);
   }
 
   private boolean isSDKAtLeastP() {
@@ -81,19 +86,20 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
       filter.addAction(LocationManager.PROVIDERS_CHANGED_ACTION);
     }
     reactContext.registerReceiver(mReceiver, filter);
-    promise.resolve("Успешно подписались на изменения в системе.");
+
+    promise.resolve(getLocalizedString(R.string.esptouch_create_broadcast_receiver));
   }
 
   protected String getEspTouchVersion() {
-    return "ESP touch version:" + IEsptouchTask.ESPTOUCH_VERSION;
+    return reactContext.getResources().getString(R.string.esptouch_about_version, IEsptouchTask.ESPTOUCH_VERSION);
   }
 
   @ReactMethod()
   public void initESPTouch(Promise promise) {
-    Log.i(NAME, "initESPTouch " + getEspTouchVersion());
+    Log.i(TAG, "init " + getEspTouchVersion());
     thisActivity = getCurrentActivity();
     if (thisActivity == null) {
-      promise.reject("Не смог обратиться к системе");
+      promise.reject(getLocalizedString(R.string.esptouch_activity_error));
       return;
     }
     // Android 9 и выше обязан предоставить разрешение на определение местоположения, а затем включить GPS для получения информации о Wi-Fi.
@@ -101,7 +107,7 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
       //Если разрешение на определение местоположения не предоставлено
       if (ContextCompat.checkSelfPermission(thisActivity, Manifest.permission.ACCESS_COARSE_LOCATION)
         != PackageManager.PERMISSION_GRANTED) {
-        promise.reject("Нужно разрешение на определение местоположения");
+        promise.reject(getLocalizedString(R.string.esptouch_permission_error));
       } else {
         registerBroadcastReceiver(promise);
       }
@@ -110,12 +116,11 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
       registerBroadcastReceiver(promise);
       return;
     }
-    promise.reject("Не смог инициализировать модуль");
   }
 
   @ReactMethod
   public void getNetInfo(Promise promise) {
-    Log.d(NAME, "try getNetInfo");
+    Log.d(TAG, "try getNetInfo");
     if (mReceiver != null) {
       WiFiStateResult thisStateResult = mReceiver.getWiFiState();
       if (thisStateResult != null) {
@@ -134,7 +139,7 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
         }
         promise.resolve(map);
       } else {
-        promise.reject("Нет данных о состоянии сети");
+        promise.reject(getLocalizedString(R.string.esptouch_get_wifi_state_error));
       }
     }
   }
@@ -150,33 +155,33 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
   public void startSmartConfig(String pwd, int broadcastType, Promise promise) {
     mConfigPromise = promise;
     if (!mReceiverRegistered) {
-      respondErrorToRTN(-1, "Модуль ESPTouch не готов");
+      respondErrorToRTN(-1, getLocalizedString(R.string.esptouch_not_ready_error));
       return;
     }
     if (mReceiver == null) {
-      respondErrorToRTN(-1, "Модуль ESPTouch не готов");
+      respondErrorToRTN(-1, getLocalizedString(R.string.esptouch_not_ready_error));
       return;
     }
 
     WiFiStateResult thisStateResult = mReceiver.getWiFiState();
 
     if (thisStateResult == null) {
-      respondErrorToRTN(-2, "Не удалось собрать статистику о сети Wi-Fi");
+      respondErrorToRTN(-2, getLocalizedString(R.string.esptouch_get_wifi_state_error));
       return;
     }
 
     if (thisStateResult.is5G) {
-      respondErrorToRTN(-3, "Устройство ZONT не поддерживает 5G Wi-Fi, убедитесь, что подключены к сети 2.4G");
+      respondErrorToRTN(-3, getLocalizedString(R.string.esptouch_wifi_5g_warning));
       return;
     }
 
     if (!thisStateResult.wifiConnected) {
-      respondErrorToRTN(-4, "Телефон не подключен к сети Wi-Fi");
+      respondErrorToRTN(-4, getLocalizedString(R.string.esptouch_no_wifi_connection_error));
       return;
     }
 
     if (!thisStateResult.permissionGranted) {
-      respondErrorToRTN(-5, "Не выдано разрешение на доступ к GPS (нужно для взаимодействия с Wi-Fi)");
+      respondErrorToRTN(-5, getLocalizedString(R.string.esptouch_permission_error));
       return;
     }
 
@@ -189,14 +194,14 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
     if (mTask != null) {
       mTask.cancelEsptouch();
     }
-    mTask = new EspTouchAsyncTask(reactContext, thisActivity, NAME, mConfigPromise);
+    mTask = new EspTouchAsyncTask(reactContext, thisActivity, TAG, mConfigPromise);
     mTask.execute(ssid, bssid, password, deviceCount, broadcast);
     mReceiver.setEspTouchTask(mTask);
   }
 
   @ReactMethod
   public void finish() {
-    Log.d(NAME, "finish ESPTouch task");
+    Log.d(TAG, "finish ESPTouch task");
     mConfigPromise = null;
     if (mTask != null) {
       mTask.cancelEsptouch();
@@ -210,7 +215,7 @@ public class EsptouchModule extends ReactContextBaseJavaModule implements Lifecy
   @Override
   @NonNull
   public String getName() {
-    return NAME;
+    return TAG;
   }
 
 }

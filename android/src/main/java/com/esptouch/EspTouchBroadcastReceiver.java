@@ -8,6 +8,8 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
+import com.esptouch.R;
+
 
 import com.facebook.react.bridge.ReactApplicationContext;
 
@@ -28,12 +30,12 @@ public class EspTouchBroadcastReceiver extends BroadcastReceiver {
         if (action == null) {
             return;
         }
-        Log.i(NAME, "BroadcastReceiver on Recieve");
+        Log.d(NAME, "BroadcastReceiver on Recieve");
         getWifiInfo(intent);
     }
 
     protected void getWifiInfo(Intent intent) {
-        Log.i(NAME, "getWifiInfo");
+        Log.d(NAME, "getWifiInfo");
 //    TODO: change to new API
 //     Попробовал использовать новый метод, ничего не получилось. Вместо wifiInfo приходит null
 
@@ -98,11 +100,11 @@ public class EspTouchBroadcastReceiver extends BroadcastReceiver {
                 } else {
                     wifiInfo = wifiManager.getConnectionInfo();
                 }
-                Log.i(NAME, "NETWORK_STATE_CHANGED_ACTION");
+                Log.d(NAME, "NETWORK_STATE_CHANGED_ACTION");
                 onWifiChanged(wifiInfo);
                 break;
             case LocationManager.PROVIDERS_CHANGED_ACTION:
-                Log.i(NAME, "PROVIDERS_CHANGED_ACTION");
+                Log.d(NAME, "PROVIDERS_CHANGED_ACTION");
                 onWifiChanged(wifiManager.getConnectionInfo());
                 break;
         }
@@ -110,7 +112,7 @@ public class EspTouchBroadcastReceiver extends BroadcastReceiver {
     }
     //  Обработка изменений Wi-Fi
     private void onWifiChanged(WifiInfo info) {
-        Log.d(NAME, "4. onWifiChanged");
+        Log.d(NAME, "onWifiChanged");
 
         WiFiStateResult stateResult = new CheckWiFiState(reactContext).checkState(info);
         thisStateResult = stateResult;
@@ -130,7 +132,7 @@ public class EspTouchBroadcastReceiver extends BroadcastReceiver {
         if (stateResult.wifiConnected) {
             if (stateResult.is5G) {
                 if (thisStateResult != null) {
-                    thisStateResult.message = "Current Wi-Fi connection is 5G, make sure your device supports it.";
+                    thisStateResult.message = reactContext.getResources().getString(R.string.esptouch_wifi_5g_warning);
                 }
             }
         } else {
