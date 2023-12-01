@@ -69,7 +69,6 @@ public class EspTouchAsyncTask extends AsyncTask<byte[], Void, List<IEsptouchRes
         if (result == null) {
             Log.i(NAME,"Create Esptouch task failed, the EspTouch port could be used by other thread");
             mConfigPromise.reject(Integer.toString(-6), "Не смог запустить ESPTouch, порт занят");
-//            respondErrorToRTN(-6, "Не смог запустить ESPTouch, порт занят");
             return;
         }
 
@@ -80,7 +79,6 @@ public class EspTouchAsyncTask extends AsyncTask<byte[], Void, List<IEsptouchRes
             // executing before receiving enough results
             if (firstResult.isSuc()) {
                 Log.i(NAME,"EspTouch success " + firstResult.getBssid() + " " + firstResult.getInetAddress());
-//          respondErrorToRTN(200, "EspTouch succcess");
                 WritableMap map = Arguments.createMap();
                 map.putInt("code", 200);
                 map.putString("msg", "Устройство успешно настроено");
@@ -94,10 +92,7 @@ public class EspTouchAsyncTask extends AsyncTask<byte[], Void, List<IEsptouchRes
                 map.putInt("code", 0);
                 map.putString("msg", "Устройство не найдено");
                 mConfigPromise.resolve(map);
-//                respondErrorToRTN(0, "Устройство не найдено");
             }
         }
-
-//        mTask = null;
     }
 }
