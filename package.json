@@ -158,5 +158,9 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "@babel/eslint-parser": "^7.23.3",
+    "babel-eslint": "^10.1.0"
   }
 }

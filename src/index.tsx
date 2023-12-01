@@ -17,11 +17,21 @@ const EspTouch = NativeModules.EspTouch
       }
     );
 
-
 export function initESPTouch(): Promise<string> {
   return EspTouch.initESPTouch();
 }
-export function getNetInfo(): Promise<object> {
+
+export interface NetInfoResult {
+  enable: boolean; //включен модуль GPS?
+  permissionGranted: boolean;
+  wifiConnected: boolean; //подключен к сети Wi-Fi?
+  is5G: boolean;
+  ssid: string | null;
+  bssid: string | null;
+  ip: string | null;
+  message: string;
+}
+export function getNetInfo(): Promise<NetInfoResult> {
   return EspTouch.getNetInfo();
 }
 
@@ -29,6 +39,16 @@ export enum BroadcastType {
   multicast = 0, // последовательно идём по группам получаетелей (x.12.12.12 -> x.13.13.13 -> x.14.14.14 -> ...)
   broadcast = 1, //одновременно всем получателям посылаем (255.255.255.255 for android, x.x.x.0 for ios)
 }
-export function startSmartConfig(password: string, broadcastType: BroadcastType): Promise<object> {
+
+export interface SmartConfigResult {
+  code: 200 | 0; //success or fail
+  msg: string;
+  bssid?: string;
+  ip?: string;
+}
+export function startSmartConfig(
+  password: string,
+  broadcastType: BroadcastType
+): Promise<SmartConfigResult> {
   return EspTouch.startSmartConfig(password, broadcastType);
 }
