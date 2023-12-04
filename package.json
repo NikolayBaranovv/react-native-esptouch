@@ -40,12 +40,12 @@
     "android"
   ],
   "repository": "https://github.com/NikolayBaranovV/react-native-esptouch",
-  "author": "baranov <baranov@microline.ru> (https://github.com/NikolayBaranovV)",
+  "author": "baranov <baranov@microline.ru> (https://github.com/NikolayBaranovv)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/NikolayBaranovV/react-native-esptouch/issues"
+    "url": "https://github.com/NikolayBaranovv/react-native-esptouch/issues"
   },
-  "homepage": "https://github.com/NikolayBaranovV/react-native-esptouch#readme",
+  "homepage": "https://github.com/NikolayBaranovv/react-native-esptouch#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
