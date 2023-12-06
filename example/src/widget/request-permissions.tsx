@@ -2,7 +2,7 @@ import { Button, StyleSheet, Text, View } from 'react-native';
 import type { Dispatch, SetStateAction } from 'react';
 import { useEffect, useReducer, useState } from 'react';
 import { checkAndRequestPermissions } from '../feature/permissions';
-import { initESPTouch } from 'react-native-esptouch';
+// import { initESPTouch } from 'react-native-esptouch';
 
 interface RequestPermissionsProps {
   setReady: Dispatch<SetStateAction<boolean>>;
@@ -15,16 +15,17 @@ export function RequestPermissions(props: RequestPermissionsProps) {
 
   useEffect(() => {
     checkAndRequestPermissions().then(setPermission);
+    setReady(false);
   }, [x]);
 
-  useEffect(() => {
-    if (have_permission) {
-      initESPTouch().then((res) => {
-        console.log(res);
-        setReady(true);
-      });
-    }
-  }, [have_permission]);
+  // useEffect(() => {
+  //   if (have_permission) {
+  //     initESPTouch().then((res) => {
+  //       console.log(res);
+  //       setReady(true);
+  //     });
+  //   }
+  // }, [have_permission]);
 
   if (have_permission) {
     return null;

@@ -51,5 +51,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+  <!-- 🚨 Keep only the permissions used in your app 🚨 -->
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>Our app need access to Wi-Fi</string>
 </dict>
 </plist>
